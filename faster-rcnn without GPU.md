@@ -29,3 +29,30 @@ py-faster-rcnn在测试模型的时候，可以选择使用cpu mode或者gpu mod
     bbox_inside_weights[ind, start:end] = cfg.TRAIN.BBOX_INSIDE_WEIGHTS  
     return bbox_targets, bbox_inside_weights  
 '''
+## 3 AttributeError: 'module' object has no attribute ‘text_format'
+解决方法：在/home/xxx/py-faster-rcnn/lib/fast_rcnn/train.py的头文件导入部分加上 ：import google.protobuf.text_format
+
+## 4 TypeError: 'numpy.float64' object cannot be interpreted as an index
+这个问题是因为我用的numpy版本太高了,　最简单的方法是直接改版本　sudo python2.7 /usr/local/bin/pip install -U numpy==1.11.0;  
+或者修改如下几个地方的code
+　　1) /home/xxx/py-faster-rcnn/lib/roi_data_layer/minibatch.py
+
+　　将第26行：fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image)
+　　改为：fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image).astype(np.int)
+
+
+　　2) /home/xxx/py-faster-rcnn/lib/datasets/ds_utils.py
+　　将第12行：hashes = np.round(boxes * scale).dot(v)
+　　改为：hashes = np.round(boxes * scale).dot(v).astype(np.int)
+
+
+　　3) /home/xxx/py-faster-rcnn/lib/fast_rcnn/test.py
+　　将第129行： hashes = np.round(blobs['rois'] * cfg.DEDUP_BOXES).dot(v)
+　　改为： hashes = np.round(blobs['rois'] * cfg.DEDUP_BOXES).dot(v).astype(np.int)
+
+
+　　4) /home/xxx/py-faster-rcnn/lib/rpn/proposal_target_layer.py
+
+　　将第60行：fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image)
+
+　　改为：fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image).astype(np.int)
